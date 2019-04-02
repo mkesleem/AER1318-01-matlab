@@ -11,7 +11,7 @@ criticalArea = 1;
 % Grid parameters
 x0 = 0.0;
 x1 = 10.0;
-nodeCount = 201;
+nodeCount = 417;
 
 % Create vector x
 xVec = linspace(x0, x1, nodeCount);
@@ -26,12 +26,22 @@ pVec = zeros(size(xVec));
 machVec = zeros(size(xVec));
 thisMach = 0.1;
 
+% Find node for shock
+shockNode = find(xVec >= 7,1);
+diffA = abs(xVec(shockNode-1) - 7);
+diffB = abs(xVec(shockNode) - 7);
+diffC = abs(xVec(shockNode+1) - 7);
+diffVec = [diffA,diffB,diffC];
+nodeVec = [shockNode-1,shockNode,shockNode+1];
+[~,shockNode] = min(diffVec);
+shockNode = nodeVec(shockNode);
+
 for idx = 1:length(xVec)
     thisRatio = sVec(idx) / criticalArea;
     thisMach = machIterative(thisRatio, thisMach+0.001);
     thisP = p01*(1+(GAMMA-1)/2 * thisMach^2)^(-(GAMMA/(GAMMA-1)));
     
-    if abs((xVec(idx) - 7)) < 5e-15
+    if idx == shockNode
         machL = thisMach;
         pL = thisP;
         p0L = p01;
@@ -110,7 +120,11 @@ end
 pVecExact = pVec;
 xVecExact = xVec;
 machVecExact = machVec;
-save("transonicExactSol","qMatExact", "xVecExact",...
+str1 = "transonicExactSol";
+str2 = sprintf("%d",nodeCount - 2);
+str3 = ".mat";
+fileNameString = str1 + str2 + str3;
+save(fileNameString,"qMatExact", "xVecExact",...
     "machVecExact", "pVecExact");
 % Save boundary conditions
 qBoundaryMat = zeros(2,3);

@@ -14,7 +14,7 @@ machDeriv = @(m) m*(2/(GAMMA+1)*...
 error = 1000;
 machOld = mach0;
 
-while error > 5e-14
+while error > 5e-13
     machNew = machOld - machFunc(machOld) / machDeriv(machOld);
     error = abs(machNew - machOld) / abs(machOld);
     machOld = machNew;

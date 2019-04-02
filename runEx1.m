@@ -11,7 +11,7 @@ criticalArea = 0.8;
 % Grid parameters
 x0 = 0.0;
 x1 = 10.0;
-nodeCount = 51;
+nodeCount = 53;
 
 % Create vector x
 xVec = linspace(x0, x1, nodeCount);
@@ -65,7 +65,11 @@ end
 pVecExact = pVec;
 xVecExact = xVec;
 machVecExact = machVec;
-save("subsonicExactSol.mat","qMatExact", "xVecExact",...
+str1 = "subsonicExactSol";
+str2 = sprintf("%d",nodeCount - 2);
+str3 = ".mat";
+fileNameString = str1 + str2 + str3;
+save(fileNameString,"qMatExact", "xVecExact",...
     "machVecExact", "pVecExact");
 % Save boundary conditions
 qBoundaryMat = zeros(2,3);

@@ -39,8 +39,12 @@ c = (p-1)*aR^2/GAMMA/u2;
 
 % Create vector x
 xDomain = [0.0, 10.0];
-nodeCount = 10000;
+nodeCount = 1601;
 xVec = linspace(xDomain(1), xDomain(2), nodeCount);
+deltaX = xVec(2) - xVec(1);
+xVec = xVec + deltaX / 2;
+xVec = xVec(1:end-1);
+xVec = [xDomain(1),xVec,xDomain(2)];
 x0 = (xDomain(1) + xDomain(end))/2;
 
 % Solve for original left quiescent state (M=0, rho=1)
@@ -70,31 +74,38 @@ mach2 = u2 / a2;
 % Plot
 machVec = zeros(size(xVec));
 rhoVec = zeros(size(xVec));
+pVec = zeros(size(xVec));
 for idx = 1:length(xVec)
     thisX = xVec(idx);
     
     if thisX < xL
         thisMach = 0;
         thisRho = 1;
+        thisP = pL;
     elseif thisX >= x5L && thisX < x5R
         thisU = u5Func(thisX);
         thisA = a5Func(thisX);
         thisRho = rho5Func(thisX);
         thisMach = thisU / thisA;
+        thisP = p5Func(thisX);
     elseif thisX >= x3L && thisX < x3R
         thisMach = mach3;
         thisRho = rho3;
+        thisP = p3;
     elseif thisX >= x2L && thisX < x2R
         thisMach = mach2;
         thisRho = rho2;
+        thisP = p2;
     elseif thisX > x2R
         thisMach = 0;
         thisRho = rhoR;
+        thisP = pR;
     end
     
     % store values
     machVec(idx) = thisMach;
     rhoVec(idx) = thisRho;
+    pVec(idx) = thisP;
 end
 
 figure(1)
@@ -107,3 +118,35 @@ figure(2)
 plot(xVec,machVec);
 xlabel("x");
 ylabel("Mach number");
+
+% Solve for q
+qMatExact = zeros(length(xVec),3);
+for idx = 1:length(xVec)
+    thisMach = machVec(idx);
+    thisP = pVec(idx);
+    thisRho = rhoVec(idx);
+    thisSound = sqrt(GAMMA*thisP/thisRho);
+    thisU = thisMach * thisSound;
+    thisE = thisP/(GAMMA-1) + thisRho*thisU^2/2;
+    q1 = thisRho;
+    q2 = thisRho*thisU;
+    q3 = thisE;
+    qVec = [q1, q2, q3];
+    qMatExact(idx,:) = qVec;
+end
+
+% Save exact solution
+pVecExact = pVec;
+xVecExact = xVec;
+machVecExact = machVec;
+str1 = "shockTubeExactSol";
+str2 = sprintf("%d",nodeCount - 1);
+str3 = ".mat";
+fileNameString = str1 + str2 + str3;
+save(fileNameString,"qMatExact", "xVecExact",...
+    "machVecExact", "pVecExact");
+% Save boundary conditions
+qBoundaryMat = zeros(2,3);
+qBoundaryMat(1,:) = qMatExact(1,:);
+qBoundaryMat(end,:) = qMatExact(end,:);
+save("shockTubeBoundaryMat.mat","qBoundaryMat");
